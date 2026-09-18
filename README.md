@@ -1,5 +1,7 @@
 # React + TypeScript + Vite
 
+The production site is deployed to GitHub Pages from the `main` branch using the workflow in `.github/workflows/deploy.yml`.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:
