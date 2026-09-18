@@ -1,12 +1,7 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
+import { StrictMode, useState, useEffect, useRef, useCallback, type FormEvent } from 'react';
+import { createRoot } from 'react-dom/client';
 import './index.css'
-import App from './App.tsx'
-
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Sun, Moon, ArrowUpRight, Plus, Send, Check, Github, Linkedin, Mail } from 'lucide-react';
+import { Sun, Moon, ArrowUpRight, Plus, Send, Check, Mail } from 'lucide-react';
 
 const NAV_ITEMS = [
   { id: 'hero', label: 'Intro', num: '00' },
@@ -82,18 +77,17 @@ export default function Portfolio() {
   const [mode, setMode] = useState('day');
   const [activeSection, setActiveSection] = useState('hero');
   const [activeFilter, setActiveFilter] = useState('All');
-  const [expandedProject, setExpandedProject] = useState('northlight');
+  const [expandedProject, setExpandedProject] = useState<string | null>('northlight');
   const [formState, setFormState] = useState({ name: '', email: '', message: '' });
   const [formStatus, setFormStatus] = useState('idle');
   const [scrollProgress, setScrollProgress] = useState(0);
 
-  const cursorRef = useRef(null);
-  const cursorInnerRef = useRef(null);
-  const canvasRef = useRef(null);
-  const heroRef = useRef(null);
-  const sectionRefs = useRef({});
+  const cursorRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
-  const registerSection = useCallback((id) => (el) => {
+  const registerSection = useCallback((id: string) => (el: HTMLElement | null) => {
     sectionRefs.current[id] = el;
   }, []);
 
@@ -104,7 +98,7 @@ export default function Portfolio() {
       const scrolled = h.scrollTop / (h.scrollHeight - h.clientHeight || 1);
       setScrollProgress(Math.min(1, Math.max(0, scrolled)));
     };
-    const onMove = (e) => {
+    const onMove = (e: MouseEvent) => {
       if (cursorRef.current) {
         cursorRef.current.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
       }
@@ -122,7 +116,9 @@ export default function Portfolio() {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) setActiveSection(entry.target.dataset.section);
+          if (entry.isIntersecting) {
+            setActiveSection((entry.target as HTMLElement).dataset.section ?? 'hero');
+          }
         });
       },
       { rootMargin: '-35% 0px -50% 0px', threshold: 0 }
@@ -137,10 +133,11 @@ export default function Portfolio() {
     const container = heroRef.current;
     if (!canvas || !container) return;
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
     let w = 0, h = 0;
     const spacing = 32;
     const mouse = { x: -9999, y: -9999 };
-    let raf;
+    let raf = 0;
 
     const resize = () => {
       w = canvas.width = container.offsetWidth;
@@ -149,7 +146,7 @@ export default function Portfolio() {
     resize();
     window.addEventListener('resize', resize);
 
-    const onMove = (e) => {
+    const onMove = (e: MouseEvent) => {
       const rect = container.getBoundingClientRect();
       mouse.x = e.clientX - rect.left;
       mouse.y = e.clientY - rect.top;
@@ -192,14 +189,14 @@ export default function Portfolio() {
     };
   }, [mode]);
 
-  const scrollTo = (id) => {
+  const scrollTo = (id: string) => {
     sectionRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const filteredProjects =
     activeFilter === 'All' ? PROJECTS : PROJECTS.filter((p) => p.category === activeFilter);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!formState.name || !formState.email || !formState.message) return;
     setFormStatus('sent');
@@ -563,8 +560,8 @@ export default function Portfolio() {
                 </p>
                 <div className="pf-social">
                   <a href="mailto:jordan@example.com" aria-label="Email"><Mail size={17} /></a>
-                  <a href="#" aria-label="GitHub"><Github size={17} /></a>
-                  <a href="#" aria-label="LinkedIn"><Linkedin size={17} /></a>
+                  <a href="#" aria-label="GitHub"><ArrowUpRight size={17} /></a>
+                  <a href="#" aria-label="LinkedIn"><ArrowUpRight size={17} /></a>
                 </div>
               </div>
               <form onSubmit={handleSubmit}>
@@ -616,8 +613,11 @@ export default function Portfolio() {
       </div>
     </div>
   );
+}
 
 
-    <App />
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <Portfolio />
   </StrictMode>,
 )
